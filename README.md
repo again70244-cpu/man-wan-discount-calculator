@@ -19,8 +19,8 @@
 
 ## 上線（GitHub Pages）
 
-1. 到此 repo 的 **Settings → Pages**，Source 選 **GitHub Actions**。
-2. 推送程式碼後，Actions 會自動部署，網址為 `https://<帳號>.github.io/man-wan-discount-calculator/`。
+網站由 `gh-pages` 分支發布：https://again70244-cpu.github.io/man-wan-discount-calculator/
+更新程式後，把變更推送到 `gh-pages` 分支，約 1 分鐘後自動生效。
 
 ## 加到手機桌面
 
