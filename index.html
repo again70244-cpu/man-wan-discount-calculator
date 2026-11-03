@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#c0392b">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="滿萬折抵">
+  <title>滿萬折抵計算</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icons/icon-192.png" type="image/png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <style>
+    :root {
+      --bg: #f6f4f1;
+      --card: #ffffff;
+      --text: #222;
+      --muted: #777;
+      --accent: #c0392b;
+      --accent-soft: #fbeae8;
+      --line: #e3ded8;
+      --good: #1e8449;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #161514;
+        --card: #232120;
+        --text: #f1eeea;
+        --muted: #a39d96;
+        --accent: #ff6f5e;
+        --accent-soft: #3a2422;
+        --line: #3a3634;
+        --good: #5fd08a;
+      }
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang TC", "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+      padding: calc(env(safe-area-inset-top) + 20px) 16px calc(env(safe-area-inset-bottom) + 24px);
+      -webkit-text-size-adjust: 100%;
+    }
+    main { max-width: 480px; margin: 0 auto; }
+    h1 { font-size: 22px; margin: 4px 0 18px; }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 14px;
+    }
+    label.field-label {
+      display: block;
+      font-size: 14px;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+    .amount-wrap { position: relative; }
+    .amount-wrap span {
+      position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+      color: var(--muted); font-size: 22px;
+    }
+    input#total {
+      width: 100%;
+      font-size: 30px;
+      font-weight: 600;
+      padding: 12px 14px 12px 40px;
+      border: 2px solid var(--line);
+      border-radius: 12px;
+      background: var(--bg);
+      color: var(--text);
+      outline: none;
+      font-variant-numeric: tabular-nums;
+    }
+    input#total:focus { border-color: var(--accent); }
+    .seg { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .seg input { position: absolute; opacity: 0; pointer-events: none; }
+    .seg label {
+      display: block;
+      text-align: center;
+      padding: 14px 8px;
+      border: 2px solid var(--line);
+      border-radius: 12px;
+      font-size: 17px;
+      font-weight: 600;
+      cursor: pointer;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .seg input:checked + label {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+      color: var(--accent);
+    }
+    .result h2 { font-size: 16px; margin: 0 0 4px; }
+    .result .sub { font-size: 13px; color: var(--muted); margin-bottom: 10px; }
+    .big {
+      font-size: 34px; font-weight: 700; color: var(--accent);
+      font-variant-numeric: tabular-nums;
+    }
+    .row {
+      display: flex; justify-content: space-between;
+      font-size: 15px; padding: 6px 0;
+      border-top: 1px dashed var(--line);
+      font-variant-numeric: tabular-nums;
+    }
+    .row:first-of-type { border-top: none; }
+    .row .k { color: var(--muted); }
+    .steps {
+      font-size: 13px; color: var(--muted); margin-top: 8px; line-height: 1.6;
+      font-variant-numeric: tabular-nums;
+    }
+    .note { font-size: 13px; color: var(--muted); text-align: center; margin-top: 4px; }
+    .compare { font-size: 14px; text-align: center; padding: 10px; }
+    .compare b { color: var(--accent); }
+    button.clear {
+      width: 100%; margin-top: 10px; padding: 10px;
+      font-size: 15px; border-radius: 10px;
+      border: 1px solid var(--line); background: transparent; color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+<main>
+  <h1>滿萬折抵計算</h1>
+
+  <section class="card">
+    <label class="field-label" for="total">總額</label>
+    <div class="amount-wrap">
+      <span>$</span>
+      <input id="total" type="text" inputmode="numeric" autocomplete="off" placeholder="0">
+    </div>
+    <button class="clear" id="clear" type="button">清除</button>
+  </section>
+
+  <section class="card">
+    <div class="field-label">優惠方式</div>
+    <div class="seg" role="radiogroup">
+      <div>
+        <input type="radio" name="unit" id="u1000" value="1000" checked>
+        <label for="u1000">滿萬送 1000</label>
+      </div>
+      <div>
+        <input type="radio" name="unit" id="u500" value="500">
+        <label for="u500">滿萬送 500</label>
+      </div>
+    </div>
+  </section>
+
+  <section class="card result">
+    <h2>方案A：領券</h2>
+    <div class="sub">結帳金額不變，額外獲得禮券</div>
+    <div class="big" id="couponAmt">$0</div>
+    <div class="row"><span class="k">張數</span><span id="couponQty">0 張</span></div>
+    <div class="row"><span class="k">結帳金額</span><span id="couponPay">$0</span></div>
+    <div class="steps" id="couponSteps"></div>
+  </section>
+
+  <section class="card result">
+    <h2>方案B：現抵</h2>
+    <div class="sub">直接從總價折抵（折抵後金額需仍能支撐張數）</div>
+    <div class="big" id="cashAmt">$0</div>
+    <div class="row"><span class="k">張數</span><span id="cashQty">0 張</span></div>
+    <div class="row"><span class="k">折抵後應付</span><span id="cashPay">$0</span></div>
+    <div class="steps" id="cashSteps"></div>
+  </section>
+
+  <div class="card compare" id="compare">請輸入總額</div>
+</main>
+
+<script>
+  // 領券：floor(總價 ÷ 10000) × 每張金額
+  function calcCoupon(price, unit) {
+    return Math.floor(price / 10000) * unit;
+  }
+
+  // 現抵：先算初步張數，再以折抵後金額重算實際張數
+  function calcCashDiscount(price, unit) {
+    var firstPass = Math.floor(price / 10000);
+    return Math.floor((price - firstPass * unit) / 10000) * unit;
+  }
+
+  var $ = function (id) { return document.getElementById(id); };
+  var totalEl = $('total');
+  var fmt = function (n) { return '$' + n.toLocaleString('en-US'); };
+  var num = function (n) { return n.toLocaleString('en-US'); };
+
+  function getUnit() {
+    return Number(document.querySelector('input[name="unit"]:checked').value);
+  }
+
+  function getPrice() {
+    var digits = totalEl.value.replace(/[^\d]/g, '');
+    return digits ? Number(digits) : 0;
+  }
+
+  function render() {
+    var price = getPrice();
+    var unit = getUnit();
+
+    var coupon = calcCoupon(price, unit);
+    var couponQty = coupon / unit;
+    var cash = calcCashDiscount(price, unit);
+    var cashQty = cash / unit;
+    var firstPass = Math.floor(price / 10000);
+    var afterFirst = price - firstPass * unit;
+
+    $('couponAmt').textContent = fmt(coupon);
+    $('couponQty').textContent = couponQty + ' 張 × ' + num(unit);
+    $('couponPay').textContent = fmt(price);
+    $('couponSteps').textContent = price
+      ? 'floor(' + num(price) + ' ÷ 10,000) = ' + couponQty + ' 張 → ' + couponQty + ' × ' + num(unit) + ' = ' + num(coupon)
+      : '';
+
+    $('cashAmt').textContent = fmt(cash);
+    $('cashQty').textContent = cashQty + ' 張 × ' + num(unit);
+    $('cashPay').textContent = fmt(price - cash);
+    $('cashSteps').textContent = price
+      ? '初步 ' + firstPass + ' 張 → (' + num(price) + ' − ' + num(firstPass * unit) + ') ÷ 10,000 = '
+        + (afterFirst / 10000).toFixed(2) + ' → ' + cashQty + ' 張 → ' + num(cash)
+      : '';
+
+    var cmp = $('compare');
+    if (!price) {
+      cmp.textContent = '請輸入總額';
+    } else if (coupon === cash) {
+      cmp.innerHTML = '兩方案金額相同：<b>' + fmt(coupon) + '</b>';
+    } else {
+      cmp.innerHTML = '領券比現抵多 <b>' + fmt(coupon - cash) + '</b>（少 ' + (couponQty - cashQty) + ' 張為現抵降階）';
+    }
+  }
+
+  totalEl.addEventListener('input', function () {
+    var price = getPrice();
+    totalEl.value = price ? num(price) : '';
+    render();
+  });
+  document.querySelectorAll('input[name="unit"]').forEach(function (r) {
+    r.addEventListener('change', render);
+  });
+  $('clear').addEventListener('click', function () {
+    totalEl.value = '';
+    render();
+    totalEl.focus();
+  });
+
+  render();
+
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function () {
+      navigator.serviceWorker.register('sw.js').catch(function () {});
+    });
+  }
+</script>
+</body>
+</html>
